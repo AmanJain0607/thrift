@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thrift Threads - Sustainable Fashion</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">  <!-- External CSS link -->
+ <style>
+      body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .hero-section {
+      background: url('https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center;
+      background-size: cover;
+      padding: 120px 20px;
+      color: white;
+      text-align: center;
+      background-color: rgba(0, 0, 0, 0.6);
+      background-blend-mode: overlay;
+      margin-bottom: 30px;
+    }
+    .hero-section h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    .hero-section p {
+      font-size: 1.5rem;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .about-section {
+      padding: 50px 20px;
+      text-align: center;
+      background-color: #fff;
+      margin: 30px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+    .product-card {
+      border: 1px solid #eee;
+      border-radius: 12px;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+    .product-image {
+      height: 220px;
+      object-fit: cover;
+      border-radius: 8px;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    .category-card {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .category-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .quantity-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      font-weight: bold;
+    }
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+      margin-top: 15px;
+      gap: 10px;
+    }
+    .quantity-selector button {
+      width: 32px;
+      height: 32px;
+    }
+    .quantity-selector span {
+      min-width: 25px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .modal-content {
+      border-radius: 12px;
+      border: none;
+    }
+    .modal-header {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .cart-count {
+      font-weight: bold;
+      background-color: #0d6efd;
+      padding: 3px 8px;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      margin-left: 5px;
+    }
+    .cart-modal .modal-dialog {
+      max-width: 500px;
+      margin: 1.75rem auto;
+    }
+    .cart-modal .modal-content {
+      padding: 25px;
+    }
+    .btn-checkout {
+      background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+      border: none;
+      padding: 10px 20px;
+      font-weight: 600;
+    }
+    #admin-panel {
+      display: none;
+    }
+    .product-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      min-height: 50px;
+    }
+    .product-price {
+      font-weight: 700;
+      color: #28a745;
+      font-size: 1.2rem;
+    }
+    .navbar {
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .category-title {
+      margin-bottom: 30px;
+      font-weight: 700;
+      color: #343a40;
+    }
+    .empty-cart {
+      text-align: center;
+      padding: 30px;
+      color: #6c757d;
+    }
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid #dee2e6;
+      margin-bottom: 1rem;
+    }
+    .auth-tab {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 0.25rem 0.25rem 0 0;
+    }
+    .auth-tab.active {
+      background-color: #fff;
+      border-color: #dee2e6 #dee2e6 #fff;
+      color: #0d6efd;
+      font-weight: 500;
+    }
+    .auth-form {
+      display: none;
+    }
+    .auth-form.active {
+      display: block;
+    }
+
+    .category-card.active {
+  border: 2px solid #ffc107;
+  box-shadow: 0 0 12px rgba(255, 193, 7, 0.6);
+  transform: scale(1.05);
+}
+
+  
+ </style>
+  <!-- Firebase SDKs -->
+
+
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="#">Thrift Threads</a>
+      <div class="d-flex">
+        <button class="btn btn-outline-light position-relative" onclick="toggleCart()">
+          <i class="bi bi-cart3"></i> Cart
+          <span id="cart-count" class="cart-count">0</span>
+        </button>
+        <button class="btn btn-outline-warning ms-2" onclick="showAdminLogin()">
+          <i class="bi bi-shield-lock"></i> Admin
+        </button>
+        <button class="btn btn-outline-info ms-2" onclick="toggleAuthModal()">
+          <i class="bi bi-person"></i> Login
+        </button>
+        <span id="user-info" class="text-white ms-3 d-none"></span>
+<button class="btn btn-outline-danger ms-2 d-none" id="logout-btn" onclick="logoutUser()">
+  <i class="bi bi-box-arrow-right"></i> Logout
+</button>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Store Content -->
+  <div id="store-content">
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <div class="container">
+        <h1>Welcome to Thrift Threads</h1>
+        <p class="lead">Find unique fashion pieces at unbeatable prices. Style sustainably.</p>
+      </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="about-section">
+      <div class="container">
+        <h2 class="mb-4">About Our Store</h2>
+        <p class="lead">Thrift Threads offers a curated selection of second-hand clothes, shoes, and socks. Our mission is to provide high-quality, stylish, and affordable fashion while reducing waste and promoting sustainability.</p>
+      </div>
+    </div>
+
+    <!-- Category Section -->
+    <div class="container my-5">
+      <h2 class="text-center mb-4 category-title">Shop by Category</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="category-card" onclick="filterCategory('Clothes')">
+            <h4>Clothes</h4>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="category-card" onclick="filterCategory('Shoes')">
+            <h4>Shoes</h4>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="category-card" onclick="filterCategory('Socks')">
+            <h4>Socks</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Section -->
+    <div class="container my-5" id="product-list-container">
+      <h2 id="product-section-title" class="text-center mb-5 category-title">All Products</h2>
+      <div class="row g-4" id="product-list"></div>
+      <button id="show-more-btn" class="btn btn-primary show-more-btn mt-5" onclick="showMoreProducts()">Show More Products</button>
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div id="admin-panel" class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="mb-0">Admin Panel</h2>
+      <button class="btn btn-secondary" onclick="goBackToStore()">
+        <i class="bi bi-arrow-left"></i> Back to Store
+      </button>
+    </div>
+    
+    <div class="card mb-4 border-0 shadow">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Add New Product</h4>
+      </div>
+      <div class="card-body">
+        <form id="add-product-form" onsubmit="return addNewProduct(event)">
+  <div class="mb-3">
+    <label class="form-label">Category</label>
+    <select class="form-select" id="product-category" required>
+      <option value="">Select Category</option>
+      <option value="Clothes">Clothes</option>
+      <option value="Shoes">Shoes</option>
+      <option value="Socks">Socks</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Product Name</label>
+    <input type="text" class="form-control" id="product-name" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Description</label>
+    <textarea class="form-control" id="product-description" rows="2" required></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Price (₹)</label>
+    <input type="number" class="form-control" id="product-price" min="1" required>
+  </div>
+
+  <div class="mb-3">
+  <label class="form-label">Product Image</label>
+  <div id="image-drop-zone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; cursor: pointer;">
+    Drag & Drop Image Here or Click to Upload
+  </div>
+  <input type="file" id="product-image" accept="image/*" style="display: none;" required>
+  <img id="image-preview" src="" alt="Preview" style="max-width: 100%; margin-top: 10px; display: none;">
+</div>
+
+
+  <button type="submit" class="btn btn-primary w-100 py-2">
+    <i class="bi bi-plus-circle"></i> Add Product
+  </button>
+</form>
+
+      </div>
+    </div>
+    
+    <div class="card border-0 shadow">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Current Products</h4>
+      </div>
+      <div class="card-body">
+        <div id="admin-product-list" class="list-group list-group-flush"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Modal -->
+  <div class="modal fade" id="cart-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Your Shopping Cart</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="cart-items"></div>
+          <div id="empty-cart-message" class="empty-cart">
+            <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
+            <p class="mt-3">Your cart is empty</p>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <h5 class="mb-0">Total:</h5>
+            <h4 class="mb-0 text-primary">₹<span id="cart-total">0</span></h4>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-danger" onclick="clearCart()">
+            <i class="bi bi-trash"></i> Clear Cart
+          </button>
+          <button class="btn btn-checkout" onclick="checkout()">
+            <i class="bi bi-credit-card"></i> Checkout
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Login Modal -->
+  <div class="modal fade" id="admin-login-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Admin Login</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="admin-login-form" onsubmit="return authenticateAdmin(event)">
+            <div class="mb-3">
+              <label class="form-label">Admin ID</label>
+              <input type="text" class="form-control" id="admin-id" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input type="password" class="form-control" id="admin-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2">
+              <i class="bi bi-box-arrow-in-right"></i> Login
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login/Signup Modal -->
+  <div class="modal fade" id="auth-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Login / Signup</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="auth-tabs">
+            <div class="auth-tab active" id="login-tab" onclick="switchAuthTab('login')">Login</div>
+            <div class="auth-tab" id="signup-tab" onclick="switchAuthTab('signup')">Signup</div>
+          </div>
+          
+          <form id="login-form" class="auth-form active" onsubmit="return handleAuth(event, 'login')">
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input type="email" class="form-control" id="login-email" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password" class="form-control" id="login-password" required>
+  </div>
+  <button type="submit" class="btn btn-primary w-100">Login</button>
+</form>
+
+          
+          <form id="signup-form" class="auth-form" onsubmit="return handleAuth(event, 'signup')">
+  <div class="mb-3">
+    <label class="form-label">Full Name</label>
+    <input type="text" class="form-control" id="signup-name" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input type="email" class="form-control" id="signup-email" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password" class="form-control" id="signup-password" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Confirm Password</label>
+    <input type="password" class="form-control" id="signup-confirm-password" required>
+  </div>
+  <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+</form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+ import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+  import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+import { query, where } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCfzj3GT-Jcj_JLMORBbRLQ_zZjiUhZ4T8",
+    authDomain: "thriftthreadsss.firebaseapp.com",
+    projectId: "thriftthreadsss",
+    storageBucket: "thriftthreadsss.firebasestorage.app",
+    messagingSenderId: "144353650693",
+    appId: "1:144353650693:web:90dcc5585bb6e338ca146c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const db = getFirestore(app);
+
+  
+
+  onAuthStateChanged(auth, async (user) => {
+  const userInfo = document.getElementById('user-info');
+  const logoutBtn = document.getElementById('logout-btn');
+  const loginBtn = document.querySelector('[onclick="toggleAuthModal()"]');
+
+  if (user) {
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const userData = userDoc.exists() ? userDoc.data() : {};
+      const displayName = userData.name || user.email;
+
+      userInfo.textContent = `Welcome, ${displayName}`;
+    } catch (err) {
+      console.error("❌ Failed to fetch user name:", err);
+      userInfo.textContent = `Welcome, ${user.email}`;
+    }
+
+    userInfo.classList.remove("d-none");
+    logoutBtn.classList.remove("d-none");
+    loginBtn.classList.add("d-none");
+  } else {
+    userInfo.textContent = "";
+    userInfo.classList.add("d-none");
+    logoutBtn.classList.add("d-none");
+    loginBtn.classList.remove("d-none");
+  }
+});
+
+
+
+
+  // Load from Firestore and call renderProducts
+  async function fetchAndRenderProducts() {
+  console.log("🔍 Fetching products from Firestore...");
+
+  const snapshot = await getDocs(collection(db, "products"));
+  console.log("📦 Documents found:", snapshot.size);
+
+  productsFromFirestore = []; // ✅ CLEAR before pushing
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    console.log("➡️ Product:", data);
+    productsFromFirestore.push(data);
+  });
+
+  renderProducts(currentCategory, true); // Respect current category filter
+  renderAdminProducts(); // ✅ Refresh admin panel view too
+}
+
+
+
+  // Wait until DOM is loaded
+  document.addEventListener('DOMContentLoaded', function () {
+    cartModal = new bootstrap.Modal(document.getElementById('cart-modal'));
+    adminModal = new bootstrap.Modal(document.getElementById('admin-login-modal'));
+    authModal = new bootstrap.Modal(document.getElementById('auth-modal'));
+
+    fetchAndRenderProducts(); // instead of renderProducts()
+    loadCartFromStorage();
+    switchAuthTab('login');
+  });
+
+  // Modify renderProducts to use productsFromFirestore instead of products object
+
+// Cart and state management
+    const cart = [];
+    let productsFromFirestore = [];
+    let displayedProducts = 4;
+    let currentCategory = null;
+    let cartModal = null;
+    let adminModal = null;
+    let authModal = null;
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize modals
+      cartModal = new bootstrap.Modal(document.getElementById('cart-modal'));
+      adminModal = new bootstrap.Modal(document.getElementById('admin-login-modal'));
+      authModal = new bootstrap.Modal(document.getElementById('auth-modal'));
+      
+      const dropZone = document.getElementById("image-drop-zone");
+const imageInput = document.getElementById("product-image");
+const imagePreview = document.getElementById("image-preview");
+
+dropZone.addEventListener("click", () => imageInput.click());
+
+dropZone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = "#007bff";
+});
+
+dropZone.addEventListener("dragleave", () => {
+  dropZone.style.borderColor = "#ccc";
+});
+
+dropZone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = "#ccc";
+  imageInput.files = e.dataTransfer.files;
+  showImagePreview();
+});
+
+imageInput.addEventListener("change", showImagePreview);
+
+function showImagePreview() {
+  const file = imageInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      imagePreview.src = reader.result;
+      imagePreview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+      
+      // Load cart from localStorage if available
+      loadCartFromStorage();
+      
+      // Initialize auth form
+      switchAuthTab('login');
+    });
+
+    // Render products based on category
+    function renderProducts(category = null, limit = true) {
+      const container = document.getElementById("product-list");
+      container.innerHTML = "";
+      currentCategory = category;
+const sectionTitle = document.getElementById("product-section-title");
+sectionTitle.textContent = category ? `Category: ${category}` : "All Products";
+
+       let filteredProducts = category
+    ? productsFromFirestore.filter(product => product.category === category)
+    : productsFromFirestore;
+
+      
+      const productsToShow = limit ? 
+        filteredProducts.slice(0, displayedProducts) : 
+        filteredProducts;
+      
+      // Toggle show more button visibility
+      const showMoreBtn = document.getElementById("show-more-btn");
+      if (!limit || filteredProducts.length <= displayedProducts) {
+        showMoreBtn.style.display = 'none';
+      } else {
+        showMoreBtn.style.display = 'block';
+      }
+
+      // Render each product
+      productsToShow.forEach((product) => {
+        const cartItem = cart.find(item => item.name === product.name);
+        const quantity = cartItem ? cartItem.quantity : 0;
+        
+        const productCard = document.createElement('div');
+        productCard.className = 'col-md-3 mb-4';
+        productCard.innerHTML = `
+          <div class="product-card">
+            <img src="${product.image || 'https://via.placeholder.com/300x200?text=No+Image'}" class="img-fluid product-image" alt="${product.name}" loading="lazy">
+
+            <h5 class="product-title">${product.name}</h5>
+            <p class="mb-2 text-muted small">${product.desc || product.description || ''}</p>
+            <p class="product-price mb-3">₹${product.price}</p>
+            
+            ${quantity > 0 ? `
+              <div class="quantity-selector">
+                <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity('${product.name}', -1, this)">
+                  <i class="bi bi-dash"></i>
+                </button>
+                <span class="quantity">${quantity}</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity('${product.name}', 1, this)">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+            ` : `
+              <button class="btn btn-primary mt-auto w-100" onclick="addToCart('${product.name}', ${product.price}, event)">
+                <i class="bi bi-cart-plus"></i> Add to Cart
+              </button>
+            `}
+          </div>
+        `;
+        container.appendChild(productCard);
+      });
+    }
+
+    // Add item to cart
+    async function addNewProduct(event) {
+  event.preventDefault();
+
+  const category = document.getElementById('product-category').value;
+  const name = document.getElementById('product-name').value;
+  const price = parseFloat(document.getElementById('product-price').value);
+  const description = document.getElementById('product-description')?.value || "Added by admin";
+
+  const imageFile = document.getElementById("product-image").files[0];
+  if (!imageFile) {
+    alert("❗ Please select an image.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("image", imageFile);
+
+  try {
+    console.log("📤 Uploading image to ImgBB...");
+    const imgbbRes = await fetch("https://api.imgbb.com/1/upload?key=c676f8520088b51f52b377ac870c8cdd", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await imgbbRes.json();
+    console.log("📷 ImgBB Result:", result);
+
+    if (!result.success || !result.data || !result.data.url) {
+      throw new Error("❌ Failed to upload image to ImgBB");
+    }
+
+    const imageUrl = result.data.url;
+    console.log("🌐 Final Image URL:", imageUrl);
+
+    console.log("🔥 Adding product to Firestore...");
+    const docRef = await addDoc(collection(db, "products"), {
+      category,
+      name,
+      price,
+      description,
+      image: imageUrl,
+      createdAt: new Date()
+    });
+
+    console.log("✅ Product added to Firestore:", docRef.id);
+    alert("✅ Product added successfully!");
+
+    document.getElementById("add-product-form").reset();
+    document.getElementById("image-preview").style.display = "none";
+
+    // Refresh
+    productsFromFirestore = [];
+    await fetchAndRenderProducts();
+    renderAdminProducts();
+
+  } catch (error) {
+    console.error("❌ Error adding product:", error);
+    alert("❌ Failed to add product. Check console for details.");
+  }
+}
+
+
+
+
+    // Update item quantity
+    function updateQuantity(name, change, buttonElement) {
+      const item = cart.find(i => i.name === name);
+      if (!item) return;
+
+      item.quantity += change;
+      
+      if (item.quantity <= 0) {
+        const itemIndex = cart.findIndex(i => i.name === name);
+        cart.splice(itemIndex, 1);
+      }
+      
+      // Update just the quantity display instead of re-rendering everything
+      if (buttonElement) {
+        const quantityDisplay = buttonElement.closest('.quantity-selector').querySelector('.quantity');
+        if (item.quantity > 0) {
+          quantityDisplay.textContent = item.quantity;
+        } else {
+          // Replace with Add to Cart button
+          const productCard = buttonElement.closest('.product-card');
+          productCard.querySelector('.quantity-selector').outerHTML = `
+            <button class="btn btn-primary mt-auto w-100" onclick="addToCart('${name}', ${item.price}, event)">
+              <i class="bi bi-cart-plus"></i> Add to Cart
+            </button>
+          `;
+        }
+      }
+      
+      updateCartDisplay();
+      saveCartToStorage();
+    }
+
+    // Update cart display
+    function updateCartDisplay() {
+      renderCart();
+      updateCartCount();
+    }
+
+    // Update cart count in navbar
+    function updateCartCount() {
+      const cartCount = document.getElementById("cart-count");
+      const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+      cartCount.textContent = totalItems;
+    }
+
+    // Render cart items
+    function renderCart() {
+      const cartItems = document.getElementById("cart-items");
+      const cartTotal = document.getElementById("cart-total");
+      const emptyCartMsg = document.getElementById("empty-cart-message");
+
+      cartItems.innerHTML = "";
+      let total = 0;
+      
+      if (cart.length === 0) {
+        emptyCartMsg.style.display = 'block';
+        cartTotal.textContent = '0';
+        return;
+      } else {
+        emptyCartMsg.style.display = 'none';
+      }
+      
+      cart.forEach(item => {
+        total += item.price * item.quantity;
+        const cartItem = document.createElement('div');
+        cartItem.className = 'cart-item';
+        cartItem.innerHTML = `
+          <div>
+            <h6 class="mb-1">${item.name}</h6>
+            <p class="mb-0 text-muted small">₹${item.price} × ${item.quantity}</p>
+          </div>
+          <div class="quantity-controls">
+            <button class="btn btn-sm btn-outline-secondary quantity-btn" 
+              onclick="updateCartItem('${item.name}', -1)">
+              <i class="bi bi-dash"></i>
+            </button>
+            <span class="mx-2">${item.quantity}</span>
+            <button class="btn btn-sm btn-outline-secondary quantity-btn" 
+              onclick="updateCartItem('${item.name}', 1)">
+              <i class="bi bi-plus"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger ms-2" 
+              onclick="removeFromCart('${item.name}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        `;
+        cartItems.appendChild(cartItem);
+      });
+      
+      cartTotal.textContent = total;
+    }
+
+    // Update cart item quantity
+    function updateCartItem(name, change) {
+      const item = cart.find(i => i.name === name);
+      if (!item) return;
+
+      item.quantity += change;
+      
+      if (item.quantity <= 0) {
+        const itemIndex = cart.findIndex(i => i.name === name);
+        cart.splice(itemIndex, 1);
+      }
+      
+      updateCartDisplay();
+      renderProducts(currentCategory, false);
+      saveCartToStorage();
+    }
+
+    // Remove item from cart
+    function removeFromCart(name) {
+      const itemIndex = cart.findIndex(item => item.name === name);
+      if (itemIndex > -1) {
+        cart.splice(itemIndex, 1);
+        updateCartDisplay();
+        renderProducts(currentCategory, false);
+        saveCartToStorage();
+      }
+    }
+
+    // Clear cart
+    function clearCart() {
+      cart.length = 0;
+      updateCartDisplay();
+      renderProducts(currentCategory, false);
+      saveCartToStorage();
+      cartModal.hide();
+    }
+
+    // Checkout function
+    function checkout() {
+      if (cart.length === 0) {
+        alert('Your cart is empty!');
+        return;
+      }
+      
+      // In a real implementation, this would process payment
+      alert(`Order placed successfully!\nTotal: ₹${cart.reduce((total, item) => total + (item.price * item.quantity), 0)}`);
+      
+      // Clear cart after checkout
+      clearCart();
+    }
+
+    // Toggle cart modal
+    function toggleCart() {
+      updateCartDisplay();
+      cartModal.show();
+    }
+
+    // Show admin login
+    function showAdminLogin() {
+      adminModal.show();
+    }
+
+    // Toggle auth modal
+    function toggleAuthModal() {
+      authModal.show();
+    }
+
+    // Switch between login/signup tabs
+    function switchAuthTab(tab) {
+      document.getElementById('login-tab').classList.toggle('active', tab === 'login');
+      document.getElementById('signup-tab').classList.toggle('active', tab === 'signup');
+      document.getElementById('login-form').classList.toggle('active', tab === 'login');
+      document.getElementById('signup-form').classList.toggle('active', tab === 'signup');
+    }
+
+    // Handle auth form submission
+    function handleAuth(event, type) {
+  event.preventDefault();
+
+  if (type === 'signup') {
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+    if (password !== confirmPassword) {
+      alert('❗ Passwords do not match');
+      return false;
+    }
+
+    createUserWithEmailAndPassword(auth, email, password)
+  .then(async (userCredential) => {
+    const user = userCredential.user;
+    const name = document.getElementById('signup-name').value;
+
+    // Save user name in Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      name: name,
+      email: user.email
+    });
+
+    console.log("✅ Signup successful:", user);
+    alert('✅ Signup successful!');
+    authModal.hide();
+  })
+  .catch(error => {
+    console.error("❌ Signup error:", error);
+    alert('❌ ' + error.message);
+  });
+
+  }
+    if (type === 'login') {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+
+  console.log("Logging in with:", email, password); // ✅ Optional debug
+
+  signInWithEmailAndPassword(auth, email, password)
+  .then(async (userCredential) => {
+
+      console.log("✅ Logged in:", userCredential.user);
+      alert('✅ Logged in successfully!');
+      authModal.hide();
+    })
+    .catch(error => {
+      console.error("❌ Login error:", error);
+      alert('❌ ' + error.message);
+    });
+}
+
+  return false;
+}
+
+
+    // Authenticate admin
+    async function authenticateAdmin(event) {
+  event.preventDefault();
+  const adminId = document.getElementById('admin-id').value;
+  const password = document.getElementById('admin-password').value;
+
+  const q = query(collection(db, "admins"), where("email", "==", adminId), where("password", "==", password));
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    // ✅ Valid admin
+    document.getElementById('store-content').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    renderAdminProducts();
+    adminModal.hide();
+    document.getElementById('admin-login-form').reset();
+  } else {
+    alert('❌ Invalid admin credentials!');
+  }
+
+  return false;
+}
+
+
+    // Go back to store from admin panel
+    function goBackToStore() {
+      document.getElementById('store-content').style.display = 'block';
+      document.getElementById('admin-panel').style.display = 'none';
+    }
+
+    // Render products in admin panel
+    function renderAdminProducts() {
+  const container = document.getElementById('admin-product-list');
+  container.innerHTML = '';
+
+  const grouped = {};
+  productsFromFirestore.forEach(product => {
+    const category = product.category || 'Uncategorized';
+    if (!grouped[category]) grouped[category] = [];
+    grouped[category].push(product);
+  });
+
+  for (const category in grouped) {
+    const categoryTitle = document.createElement('div');
+    categoryTitle.className = 'list-group-item bg-light fw-bold';
+    categoryTitle.textContent = category;
+    container.appendChild(categoryTitle);
+
+    grouped[category].forEach(product => {
+      const productItem = document.createElement('div');
+      productItem.className = 'list-group-item';
+      productItem.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <img src="${product.image}" width="60" height="60" class="rounded me-3" style="object-fit: cover">
+            <div>
+              <h6 class="mb-1">${product.name}</h6>
+              <p class="mb-0 text-muted small">₹${product.price}</p>
+            </div>
+          </div>
+        </div>
+      `;
+      container.appendChild(productItem);
+    });
+  }
+}
+
+
+    
+
+    // Delete product
+    function deleteProduct(category, index) {
+      if (confirm('Are you sure you want to delete this product?')) {
+        // Remove from cart if present
+        const productName = products[category][index].name;
+        const cartIndex = cart.findIndex(item => item.name === productName);
+        if (cartIndex > -1) {
+          cart.splice(cartIndex, 1);
+          updateCartDisplay();
+        }
+        
+        // Remove from products
+        products[category].splice(index, 1);
+        renderAdminProducts();
+        
+        // Update store view if viewing the same category
+        if (!currentCategory || currentCategory === category) {
+          renderProducts(currentCategory, false);
+        }
+        
+        saveCartToStorage();
+      }
+    }
+
+    // Filter by category
+    function filterCategory(category) {
+  displayedProducts = 4;
+  currentCategory = category;
+  renderProducts(category);
+
+  // Remove active from all cards
+  document.querySelectorAll('.category-card').forEach(card => {
+    card.classList.remove('active');
+  });
+
+  // Add active to the one that was clicked
+  const matchingCard = Array.from(document.querySelectorAll('.category-card')).find(card =>
+    card.textContent.trim().toLowerCase() === category.toLowerCase()
+  );
+  if (matchingCard) {
+    matchingCard.classList.add('active');
+  }
+}
+
+    // Show more products
+    function showMoreProducts() {
+      displayedProducts += 4;
+      renderProducts(currentCategory, false);
+    }
+
+    // Save cart to localStorage
+    function saveCartToStorage() {
+      localStorage.setItem('thriftThreadsCart', JSON.stringify(cart));
+    }
+
+    // Load cart from localStorage
+    function loadCartFromStorage() {
+      const savedCart = localStorage.getItem('thriftThreadsCart');
+      if (savedCart) {
+        cart.length = 0; // Clear current cart
+        Array.prototype.push.apply(cart, JSON.parse(savedCart));
+        updateCartDisplay();
+      }
+    }
+
+  function addToCart(name, price, event) {
+  const existingItem = cart.find(item => item.name === name);
+  if (existingItem) {
+    existingItem.quantity++;
+  } else {
+    cart.push({ name, price, quantity: 1 });
+  }
+
+  // Update the button in the DOM
+  const button = event.target.closest('button');
+  const productCard = button.closest('.product-card');
+
+  button.outerHTML = `
+    <div class="quantity-selector">
+      <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity('${name}', -1, this)">
+        <i class="bi bi-dash"></i>
+      </button>
+      <span class="quantity">1</span>
+      <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity('${name}', 1, this)">
+        <i class="bi bi-plus"></i>
+      </button>
+    </div>
+  `;
+
+  updateCartDisplay();
+  saveCartToStorage();
+}
+
+function logoutUser() {
+  signOut(auth).then(() => {
+    alert("✅ Logged out successfully.");
+  }).catch((error) => {
+    console.error("Logout failed:", error);
+    alert("❌ Logout failed.");
+  });
+}
+
+window.addToCart = addToCart;
+window.updateQuantity = updateQuantity;
+window.clearCart = clearCart;
+window.checkout = checkout;
+window.toggleCart = toggleCart;
+window.showAdminLogin = showAdminLogin;
+window.toggleAuthModal = toggleAuthModal;
+window.switchAuthTab = switchAuthTab;
+window.authenticateAdmin = authenticateAdmin;
+window.filterCategory = filterCategory;
+window.showMoreProducts = showMoreProducts;
+window.updateCartItem = updateCartItem;
+window.removeFromCart = removeFromCart;
+window.renderProducts = renderProducts; // Optional, for re-render after cart update
+window.logoutUser = logoutUser;
+window.handleAuth = handleAuth;
+window.goBackToStore = goBackToStore;
+
+</script>
+
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
